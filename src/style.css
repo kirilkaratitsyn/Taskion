@@ -89,6 +89,36 @@ input {
   margin: 0 auto;
 }
 
+.topbar-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.topbar-user-info {
+  display: inline-flex;
+  align-items: center;
+  min-height: 31px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #ffffff;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+.topbar-user-email {
+  margin-left: 6px;
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+
+
 .badge,
 .meta-pill,
 .count-badge {
@@ -144,6 +174,10 @@ input {
   grid-column: auto;
 }
 
+.card-auth {
+  grid-column: auto;
+}
+
 .card-header {
   display: flex;
   align-items: flex-start;
@@ -172,6 +206,11 @@ input {
 }
 
 .task-form {
+  display: grid;
+  gap: 18px;
+}
+
+.auth-form {
   display: grid;
   gap: 18px;
 }
@@ -472,6 +511,12 @@ input {
   justify-content: flex-start;
   gap: 16px;
   margin-bottom: 16px;
+}
+
+.auth-sign-up-button,
+.auth-sign-in-button,
+.auth-sign-out-button {
+  width: fit-content;
 }
 
 .empty-state {

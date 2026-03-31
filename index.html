@@ -20,6 +20,19 @@
   <body>
     <div class="app-shell">
       <main class="app-wrapper" aria-label="Taskion todo app">
+        <div class="topbar-actions">
+          <div class="topbar-user-info" hidden>
+            Signed in as <span class="topbar-user-email"></span>
+          </div>
+          <button
+            type="button"
+            class="button button-secondary topbar-sign-out-button auth-sign-out-button"
+            hidden
+          >
+            Sign Out
+          </button>
+        </div>
+
         <section class="layout-grid">
           <section class="card card-form" aria-labelledby="task-form-title">
             <div class="card-header">
@@ -48,6 +61,58 @@
                 <div class="button-row">
                   <button type="submit" class="button button-primary">
                     Add Task
+                  </button>
+                </div>
+              </form>
+            </div>
+          </section>
+
+          <section class="card card-auth" aria-labelledby="auth-form-title">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title" id="auth-form-title">Account</h2>
+                <p class="card-description">
+                  Create an account or sign in to connect tasks to a user.
+                </p>
+              </div>
+            </div>
+
+            <div class="card-content">
+              <form class="auth-form" action="#" method="post">
+                <label class="field">
+                  <span class="field-label">Email</span>
+                  <input
+                    type="email"
+                    name="email"
+                    class="auth-email-input"
+                    placeholder="you@example.com"
+                    autocomplete="email"
+                  />
+                </label>
+
+                <label class="field">
+                  <span class="field-label">Password</span>
+                  <input
+                    type="password"
+                    name="password"
+                    class="auth-password-input"
+                    placeholder="Enter your password"
+                    autocomplete="current-password"
+                  />
+                </label>
+
+                <div class="button-row">
+                  <button
+                    type="button"
+                    class="button button-primary auth-sign-up-button"
+                  >
+                    Sign Up
+                  </button>
+                  <button
+                    type="button"
+                    class="button button-secondary auth-sign-in-button"
+                  >
+                    Sign In
                   </button>
                 </div>
               </form>
