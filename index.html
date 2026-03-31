@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Taskion is a clean starter template for a vanilla JavaScript Todo app."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="stylesheet" href="./src/style.css" />
+    <title>Taskion</title>
+  </head>
+  <body>
+    <div class="app-shell">
+      <main class="app-wrapper" aria-label="Taskion todo app">
+        <section class="layout-grid">
+          <section class="card card-form" aria-labelledby="task-form-title">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title" id="task-form-title">Add a new task</h2>
+                <p class="card-description">
+                  Keep the structure simple for now. Logic and persistence can
+                  be added later.
+                </p>
+              </div>
+            </div>
+
+            <div class="card-content">
+              <form class="task-form" action="#" method="get">
+                <label class="field">
+                  <span class="field-label">Task title</span>
+                  <input
+                    type="text"
+                    name="task"
+                    class="task-input"
+                    placeholder="Write a new task..."
+                    autocomplete="off"
+                  />
+                </label>
+
+                <div class="button-row">
+                  <button type="submit" class="button button-primary">
+                    Add Task
+                  </button>
+                </div>
+              </form>
+            </div>
+          </section>
+
+          <section class="card card-tasks" aria-labelledby="tasks-title">
+            <div class="card-header card-header-inline">
+              <div>
+                <h2 class="card-title" id="tasks-title">To do</h2>
+                <p class="card-description">
+                  Rendered todo items can appear here once JavaScript logic is
+                  added.
+                </p>
+              </div>
+              <span class="count-badge"
+                ><span class="task-count">1</span> item</span
+              >
+            </div>
+
+            <div class="card-content">
+              <div class="tasks-toolbar" aria-labelledby="controls-title">
+                <div
+                  class="segmented-control"
+                  role="group"
+                  aria-label="Task filters"
+                >
+                  <button
+                    type="button"
+                    class="chip chip-active"
+                    data-state="all"
+                  >
+                    All
+                  </button>
+                  <button type="button" class="chip" data-state="todo">
+                    To do
+                  </button>
+                  <button type="button" class="chip" data-state="in_progress">
+                    In Progress
+                  </button>
+                  <button type="button" class="chip" data-state="done">
+                    Done
+                  </button>
+                </div>
+              </div>
+
+              <ul class="tasks-list" aria-label="Todo items"></ul>
+
+              <div class="empty-state" role="status" hidden>
+                <h3>No tasks yet</h3>
+                <p>
+                  Your first task will live here. The layout is ready for future
+                  rendering, filtering, and database-backed data.
+                </p>
+              </div>
+            </div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>
