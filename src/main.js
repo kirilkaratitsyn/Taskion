@@ -6,7 +6,7 @@ import {
   formatTaskDate,
   formatTaskStatusLabel,
   updateCounter,
-} from "./helpers/task-helpers.js";
+} from "./task-helpers.js";
 
 const taskForm = document.querySelector(".task-form");
 const taskInput = document.querySelector(".task-input");
