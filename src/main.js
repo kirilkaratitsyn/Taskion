@@ -24,6 +24,9 @@ const authPasswordInput = document.querySelector(".auth-password-input");
 const authSignUpButton = document.querySelector(".auth-sign-up-button");
 const authSignInButton = document.querySelector(".auth-sign-in-button");
 const authSignOutButton = document.querySelector(".topbar-sign-out-button");
+const authMessage = document.querySelector(".auth-message");
+const authMessageTitle = document.querySelector(".auth-message-title");
+const authMessageText = document.querySelector(".auth-message-text");
 const topbarUserInfo = document.querySelector(".topbar-user-info");
 const topbarUserEmail = document.querySelector(".topbar-user-email");
 
@@ -37,10 +40,15 @@ authSignUpButton.addEventListener("click", async () => {
 
   if (error) {
     console.error(error);
+    showAuthMessage("error", "Sign up failed", error.message);
     return;
   }
 
-  console.log("User signed up");
+  showAuthMessage(
+    "success",
+    "Account created",
+    "Your account was created successfully. You can sign in now.",
+  );
   await refreshSessionUI();
 });
 
@@ -52,10 +60,11 @@ authSignInButton.addEventListener("click", async () => {
 
   if (error) {
     console.error(error);
+    showAuthMessage("error", "Sign in failed", error.message);
     return;
   }
 
-  console.log("User signed in");
+  showAuthMessage("success", "Signed in", "You are now signed in.");
   await refreshSessionUI();
 });
 
@@ -67,9 +76,9 @@ authSignOutButton.addEventListener("click", async () => {
     return;
   }
 
-  console.log("User signed out");
   clearAuthInputs();
   updateAuthUI(null);
+  showAuthMessage("neutral", "Signed out", "You have been signed out.");
 });
 
 document.addEventListener("DOMContentLoaded", async function () {
@@ -230,6 +239,18 @@ function updateAuthUI(session) {
 function clearAuthInputs() {
   authEmailInput.value = "";
   authPasswordInput.value = "";
+}
+
+function showAuthMessage(type, title, text) {
+  authMessage.hidden = false;
+  authMessage.classList.remove(
+    "auth-message-success",
+    "auth-message-error",
+    "auth-message-neutral",
+  );
+  authMessage.classList.add(`auth-message-${type}`);
+  authMessageTitle.textContent = title;
+  authMessageText.textContent = text;
 }
 
 filterButtons.forEach((button) => {

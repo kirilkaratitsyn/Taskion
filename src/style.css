@@ -222,6 +222,71 @@ input {
   gap: 18px;
 }
 
+.auth-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) - 2px);
+  background: #fcfcfc;
+}
+
+.auth-message-indicator {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  margin-top: 4px;
+  border-radius: 999px;
+  background: #a1a1aa;
+  box-shadow: 0 0 0 4px #f4f4f5;
+}
+
+.auth-message-content {
+  min-width: 0;
+}
+
+.auth-message-title {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--foreground);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.auth-message-text {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+
+.auth-message-success {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.auth-message-success .auth-message-indicator {
+  background: #16a34a;
+  box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.12);
+}
+
+.auth-message-error {
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.auth-message-error .auth-message-indicator {
+  background: #dc2626;
+  box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.12);
+}
+
+.auth-message-neutral {
+  border-color: var(--border);
+  background: #fcfcfc;
+}
+
 .field {
   display: grid;
   gap: 8px;

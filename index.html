@@ -69,10 +69,10 @@
                     />
                   </label>
 
-                  <div class="button-row">
-                    <button
-                      type="button"
-                      class="button button-primary auth-sign-up-button"
+                <div class="button-row">
+                  <button
+                    type="button"
+                    class="button button-primary auth-sign-up-button"
                     >
                       Sign Up
                     </button>
@@ -80,12 +80,27 @@
                       type="button"
                       class="button button-secondary auth-sign-in-button"
                     >
-                      Sign In
-                    </button>
+                    Sign In
+                  </button>
+                </div>
+
+                <div
+                  class="auth-message auth-message-neutral"
+                  role="status"
+                  aria-live="polite"
+                  hidden
+                >
+                  <span class="auth-message-indicator" aria-hidden="true"></span>
+                  <div class="auth-message-content">
+                    <strong class="auth-message-title">Auth status</strong>
+                    <p class="auth-message-text">
+                      Success and error messages will appear here.
+                    </p>
                   </div>
-                </form>
-              </div>
-            </section>
+                </div>
+              </form>
+            </div>
+          </section>
 
             <section class="card card-pomodoro" aria-labelledby="pomodoro-title">
               <div class="card-header">
