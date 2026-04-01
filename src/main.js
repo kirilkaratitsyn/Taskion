@@ -15,9 +15,10 @@ const emptyState = document.querySelector(".empty-state");
 const taskCount = document.querySelector(".task-count");
 const taskFormCard = document.querySelector(".card-form");
 const tasksCard = document.querySelector(".card-tasks");
+const pomodoroCard = document.querySelector(".card-pomodoro");
 const authCard = document.querySelector(".card-auth");
 const TASK_STATUSES = ["todo", "in_progress", "done"];
-const filterButtons = document.querySelectorAll(".chip");
+const filterButtons = document.querySelectorAll(".tasks-toolbar .chip");
 const authEmailInput = document.querySelector(".auth-email-input");
 const authPasswordInput = document.querySelector(".auth-password-input");
 const authSignUpButton = document.querySelector(".auth-sign-up-button");
@@ -195,7 +196,6 @@ async function refreshSessionUI() {
   }
 
   const session = data.session;
-  console.log("Current session:", session);
   updateAuthUI(session);
 
   if (session) {
@@ -209,6 +209,7 @@ function updateAuthUI(session) {
 
   taskFormCard.toggleAttribute("hidden", !isLoggedIn);
   tasksCard.toggleAttribute("hidden", !isLoggedIn);
+  pomodoroCard.toggleAttribute("hidden", !isLoggedIn);
   authCard.toggleAttribute("hidden", isLoggedIn);
 
   authSignUpButton.toggleAttribute("hidden", isLoggedIn);
