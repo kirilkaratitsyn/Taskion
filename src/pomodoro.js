@@ -1,9 +1,12 @@
 const pomodoroCard = document.querySelector(".card-pomodoro");
 const pomodoroModeButtons = document.querySelectorAll(".pomodoro-mode-button");
+const pomodoroDurationInputs = document.querySelectorAll(".pomodoro-duration-input");
+const pomodoroDurationGrid = document.querySelector(".pomodoro-duration-grid");
 const pomodoroLabel = document.querySelector(".pomodoro-label");
 const pomodoroTime = document.querySelector(".pomodoro-time");
 const pomodoroPrimaryButton = document.querySelector(".pomodoro-primary-button");
 const pomodoroResetButton = document.querySelector(".pomodoro-reset-button");
+const pomodoroSettingsButton = document.querySelector(".pomodoro-settings-button");
 const pomodoroSessionsValue = document.querySelector(".pomodoro-sessions-value");
 const pomodoroTodayValue = document.querySelector(".pomodoro-today-value");
 const initialPomodoroModeButton = document.querySelector(
@@ -28,6 +31,12 @@ const pomodoroState = {
   audioContext: null,
   oscillator: null,
   gainNode: null,
+  isSettingsOpen: false,
+  durations: {
+    focus: getPomodoroMinutesFromButton("focus", 25),
+    short_break: getPomodoroMinutesFromButton("short_break", 5),
+    long_break: getPomodoroMinutesFromButton("long_break", 30),
+  },
 };
 
 if (
@@ -36,7 +45,9 @@ if (
   pomodoroLabel &&
   pomodoroTime &&
   pomodoroPrimaryButton &&
-  pomodoroResetButton
+  pomodoroResetButton &&
+  pomodoroDurationGrid &&
+  pomodoroSettingsButton
 ) {
   pomodoroModeButtons.forEach((button) => {
     button.addEventListener("click", () => {
@@ -48,8 +59,18 @@ if (
     });
   });
 
+  pomodoroDurationInputs.forEach((input) => {
+    input.addEventListener("change", () => {
+      updatePomodoroDuration(input);
+    });
+  });
+
   pomodoroPrimaryButton.addEventListener("click", () => {
     handlePrimaryTimerAction();
+  });
+
+  pomodoroSettingsButton.addEventListener("click", () => {
+    togglePomodoroSettings();
   });
 
   pomodoroResetButton.addEventListener("click", () => {
@@ -73,6 +94,33 @@ function setPomodoroMode(button) {
   pomodoroState.secondsLeft = nextMinutes * 60;
   pomodoroState.intervalId = null;
   pomodoroState.isRunning = false;
+  pomodoroState.isFinished = false;
+
+  renderPomodoro();
+}
+
+function updatePomodoroDuration(input) {
+  const nextMode = input.dataset.mode;
+  const nextMinutes = getValidPomodoroMinutes(input.value);
+  const nextModeButton = document.querySelector(
+    `.pomodoro-mode-button[data-mode="${nextMode}"]`,
+  );
+
+  input.value = String(nextMinutes);
+  pomodoroState.durations[nextMode] = nextMinutes;
+
+  if (nextModeButton) {
+    nextModeButton.dataset.minutes = String(nextMinutes);
+  }
+
+  if (pomodoroState.mode !== nextMode || pomodoroState.isRunning) {
+    renderPomodoro();
+    return;
+  }
+
+  pomodoroState.minutes = nextMinutes;
+  pomodoroState.initialSeconds = nextMinutes * 60;
+  pomodoroState.secondsLeft = nextMinutes * 60;
   pomodoroState.isFinished = false;
 
   renderPomodoro();
@@ -156,6 +204,7 @@ function resetPomodoro() {
 function renderPomodoro() {
   pomodoroCard.classList.toggle("is-running", pomodoroState.isRunning);
   pomodoroCard.classList.toggle("is-finished", pomodoroState.isFinished);
+  pomodoroCard.classList.toggle("is-settings-open", pomodoroState.isSettingsOpen);
 
   pomodoroLabel.textContent = pomodoroState.label;
   pomodoroTime.textContent = formatPomodoroTime(pomodoroState.secondsLeft);
@@ -169,6 +218,21 @@ function renderPomodoro() {
     button.disabled = pomodoroState.isRunning;
   });
 
+  pomodoroSettingsButton.setAttribute(
+    "aria-expanded",
+    String(pomodoroState.isSettingsOpen),
+  );
+  pomodoroSettingsButton.disabled = pomodoroState.isRunning;
+  pomodoroDurationGrid.hidden = !pomodoroState.isSettingsOpen;
+
+  pomodoroDurationInputs.forEach((input) => {
+    const inputMode = input.dataset.mode;
+    const nextMinutes = pomodoroState.durations[inputMode];
+
+    input.value = String(nextMinutes);
+    input.disabled = pomodoroState.isRunning;
+  });
+
   if (pomodoroSessionsValue) {
     pomodoroSessionsValue.textContent = String(pomodoroState.sessionsCompleted);
   }
@@ -177,6 +241,8 @@ function renderPomodoro() {
     const minutesToday = Math.floor(pomodoroState.totalFocusSeconds / 60);
     pomodoroTodayValue.textContent = `${minutesToday}m`;
   }
+
+  emitPomodoroStateChange();
 }
 
 function getPrimaryButtonLabel() {
@@ -246,4 +312,44 @@ function stopPomodoroSound() {
     pomodoroState.audioContext.close();
     pomodoroState.audioContext = null;
   }
+}
+
+function getPomodoroMinutesFromButton(mode, fallbackMinutes) {
+  const button = document.querySelector(`.pomodoro-mode-button[data-mode="${mode}"]`);
+  const buttonMinutes = Number(button?.dataset.minutes);
+
+  return Number.isFinite(buttonMinutes) && buttonMinutes > 0
+    ? buttonMinutes
+    : fallbackMinutes;
+}
+
+function getValidPomodoroMinutes(value) {
+  const minutes = Number(value);
+
+  if (!Number.isFinite(minutes) || minutes < 1) {
+    return 1;
+  }
+
+  return Math.floor(minutes);
+}
+
+function emitPomodoroStateChange() {
+  document.dispatchEvent(
+    new CustomEvent("pomodoro:state-change", {
+      detail: {
+        mode: pomodoroState.mode,
+        isRunning: pomodoroState.isRunning,
+        isFinished: pomodoroState.isFinished,
+      },
+    }),
+  );
+}
+
+function togglePomodoroSettings() {
+  if (pomodoroState.isRunning) {
+    return;
+  }
+
+  pomodoroState.isSettingsOpen = !pomodoroState.isSettingsOpen;
+  renderPomodoro();
 }

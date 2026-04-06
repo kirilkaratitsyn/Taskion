@@ -14,9 +14,14 @@ export function formatTaskDate(dateString) {
   });
 }
 
-export function updateCounter(tasks, taskCountElement) {
+export function updateCounter(tasks, taskCountElement, taskCountLabelElement) {
   const counterValue = tasks.length;
-  taskCountElement.innerHTML = counterValue;
+
+  taskCountElement.textContent = String(counterValue);
+
+  if (taskCountLabelElement) {
+    taskCountLabelElement.textContent = counterValue === 1 ? "item" : "items";
+  }
 }
 
 export function formatTaskStatusLabel(status) {
