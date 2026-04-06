@@ -12,7 +12,7 @@ const taskForm = document.querySelector(".task-form");
 const taskInput = document.querySelector(".task-input");
 const taskProjectSelect = document.querySelector(".task-project-select");
 const tasksList = document.querySelector(".tasks-list");
-const emptyState = document.querySelector(".empty-state");
+const tasksEmptyState = document.querySelector(".tasks-empty-state");
 const taskCount = document.querySelector(".task-count");
 const taskCountLabel = document.querySelector(".task-count-label");
 const taskFormCard = document.querySelector(".card-form");
@@ -533,12 +533,12 @@ function renderTasks(tasks) {
 
   if (tasks.length === 0) {
     tasksList.setAttribute("hidden", true);
-    emptyState.removeAttribute("hidden");
+    tasksEmptyState.removeAttribute("hidden");
     return;
   }
 
   tasksList.removeAttribute("hidden");
-  emptyState.setAttribute("hidden", true);
+  tasksEmptyState.setAttribute("hidden", true);
 
   tasks.forEach((task) => {
     const taskId = getTaskIdValue(task.id);
@@ -808,7 +808,7 @@ function updateAuthUI(session) {
     setActiveProjectFilterButton(activeProjectFilter);
     tasksList.innerHTML = "";
     tasksList.setAttribute("hidden", true);
-    emptyState.setAttribute("hidden", true);
+    tasksEmptyState.setAttribute("hidden", true);
     projectsList.innerHTML = "";
     projectsList.setAttribute("hidden", true);
     projectsPagination.setAttribute("hidden", true);
