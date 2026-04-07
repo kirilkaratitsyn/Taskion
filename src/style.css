@@ -794,7 +794,7 @@ input {
 }
 
 .inline-edit-grid-task {
-  grid-template-columns: minmax(0, 2fr) minmax(180px, 1fr);
+  grid-template-columns: minmax(0, 2fr) minmax(130px, 1fr) minmax(160px, 1fr);
 }
 
 .inline-edit-field {
@@ -945,9 +945,60 @@ input {
 .tasks-toolbar {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 16px;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
   margin-bottom: 16px;
+}
+
+.tasks-project-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tasks-project-filter-select {
+  height: 31px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #ffffff;
+  color: var(--foreground);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.tasks-project-filter-select:hover {
+  border-color: #d4d4d8;
+}
+
+.tasks-project-filter-select:focus {
+  outline: none;
+  border-color: #a1a1aa;
+  box-shadow: 0 0 0 3px var(--ring);
+}
+
+.tasks-project-filter-clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--muted-foreground);
+  font-size: 1rem;
+  line-height: 1;
+  transition: background var(--transition), color var(--transition);
+}
+
+.tasks-project-filter-clear:hover {
+  background: #fef2f2;
+  border-color: #fca5a5;
+  color: #b91c1c;
 }
 
 .projects-toolbar {
@@ -1546,6 +1597,65 @@ input {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+}
+
+/* ── Apple Reminders Settings ────────────────── */
+
+.reminders-toggle-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  flex-shrink: 0;
+}
+
+.reminders-toggle-text {
+  white-space: nowrap;
+}
+
+.reminders-settings-form {
+  display: grid;
+  gap: 16px;
+}
+
+.reminders-hint {
+  margin-top: -4px;
+  color: var(--muted-foreground);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.reminders-hint a {
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+.reminders-status {
+  padding: 10px 14px;
+  border-radius: calc(var(--radius) - 2px);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.reminders-status-loading {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  color: #0369a1;
+}
+
+.reminders-status-success {
+  background: #ecfdf5;
+  border: 1px solid #bbf7d0;
+  color: #15803d;
+}
+
+.reminders-status-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
 }
 
 /* ── Confirm Modal ───────────────────────────── */

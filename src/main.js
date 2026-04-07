@@ -43,7 +43,9 @@ const PROJECT_STATUS_OPTIONS = [
   "Done",
 ];
 const PROJECT_PRIORITY_OPTIONS = ["Urgent", "High", "Medium", "Low"];
-const filterButtons = document.querySelectorAll(".tasks-toolbar .chip");
+const filterButtons = document.querySelectorAll(".tasks-toolbar .segmented-control .chip");
+const tasksProjectFilterSelect = document.querySelector(".tasks-project-filter-select");
+const tasksProjectFilterClear = document.querySelector(".tasks-project-filter-clear");
 const authEmailInput = document.querySelector(".auth-email-input");
 const authPasswordInput = document.querySelector(".auth-password-input");
 const authSignUpButton = document.querySelector(".auth-sign-up-button");
@@ -64,6 +66,14 @@ const projectsCountLabel = document.querySelector(".projects-count-label");
 const projectFilterButtons = document.querySelectorAll(".projects-toolbar .chip");
 const projectsPagination = document.querySelector(".projects-pagination");
 const projectsLoadMoreButton = document.querySelector(".projects-load-more-button");
+const remindersSettingsCard = document.querySelector(".card-reminders-settings");
+const remindersSettingsForm = document.querySelector(".reminders-settings-form");
+const remindersEnabledCheckbox = document.querySelector(".reminders-enabled-checkbox");
+const remindersEmailInput = document.querySelector(".reminders-icloud-email-input");
+const remindersPasswordInput = document.querySelector(".reminders-icloud-password-input");
+const remindersListNameInput = document.querySelector(".reminders-list-name-input");
+const remindersStatus = document.querySelector(".reminders-status");
+const remindersTestButton = document.querySelector(".reminders-test-button");
 const taskDetailsModal = document.querySelector(".task-details-modal");
 const taskDetailsDialog = document.querySelector(".task-details-dialog");
 const taskDetailsCloseButtons = document.querySelectorAll("[data-close-task-modal]");
@@ -84,6 +94,7 @@ const taskDetailsCancelButton = document.querySelector(".task-details-cancel-but
 
 let allTasks = [];
 let activeTaskFilter = "all";
+let activeTaskProjectFilter = "";
 let activeProjectFilter = "all";
 let isLoggedIn = false;
 let isPomodoroRunning = false;
@@ -94,6 +105,7 @@ let editingTaskId = "";
 let editingTaskValues = {
   title: "",
   projectId: "",
+  status: "",
 };
 let editingProjectId = "";
 let editingProjectValues = {
@@ -276,8 +288,9 @@ tasksList.addEventListener("click", async (event) => {
     const taskId = buttonEdit.dataset.id;
     const currentTitle = decodeTaskTitle(buttonEdit.dataset.title);
     const currentProjectId = buttonEdit.dataset.projectId || "";
+    const currentStatus = buttonEdit.dataset.status || "";
 
-    startTaskEditing(taskId, currentTitle, currentProjectId);
+    startTaskEditing(taskId, currentTitle, currentProjectId, currentStatus);
     return;
   }
 
@@ -332,15 +345,21 @@ tasksList.addEventListener("input", (event) => {
 
 tasksList.addEventListener("change", (event) => {
   const projectSelect = event.target.closest(".task-inline-edit-project-select");
+  const statusSelect = event.target.closest(".task-inline-edit-status-select");
 
-  if (!projectSelect) {
-    return;
+  if (projectSelect) {
+    editingTaskValues = {
+      ...editingTaskValues,
+      projectId: projectSelect.value,
+    };
   }
 
-  editingTaskValues = {
-    ...editingTaskValues,
-    projectId: projectSelect.value,
-  };
+  if (statusSelect) {
+    editingTaskValues = {
+      ...editingTaskValues,
+      status: statusSelect.value,
+    };
+  }
 });
 
 projectsList.addEventListener("click", async (event) => {
@@ -599,11 +618,12 @@ async function updateTask(taskId, currentStatus) {
   }
 }
 
-function startTaskEditing(taskId, currentTitle, currentProjectId) {
+function startTaskEditing(taskId, currentTitle, currentProjectId, currentStatus) {
   editingTaskId = getTaskIdValue(taskId);
   editingTaskValues = {
     title: currentTitle,
     projectId: currentProjectId || "",
+    status: normalizeTaskStatus(currentStatus || "todo"),
   };
   applyTaskFilter(activeTaskFilter);
   focusInlineEditField(".task-inline-edit-input");
@@ -614,6 +634,7 @@ function cancelTaskEditing() {
   editingTaskValues = {
     title: "",
     projectId: "",
+    status: "",
   };
 }
 
@@ -621,6 +642,7 @@ async function saveTaskChanges(taskId) {
   const normalizedTaskId = getTaskIdValue(taskId);
   const nextTitle = editingTaskValues.title.trim();
   const nextProjectId = editingTaskValues.projectId;
+  const nextStatus = editingTaskValues.status || TASK_STATUSES[0];
   const currentTask = allTasks.find((task) => getTaskIdValue(task.id) === normalizedTaskId);
 
   if (!nextTitle || !nextProjectId) {
@@ -630,7 +652,8 @@ async function saveTaskChanges(taskId) {
   if (
     currentTask &&
     currentTask.title === nextTitle &&
-    (currentTask.project_notion_page_id || "") === nextProjectId
+    (currentTask.project_notion_page_id || "") === nextProjectId &&
+    normalizeTaskStatus(currentTask.status) === nextStatus
   ) {
     cancelTaskEditing();
     applyTaskFilter(activeTaskFilter);
@@ -642,6 +665,7 @@ async function saveTaskChanges(taskId) {
     .update({
       title: nextTitle,
       project_notion_page_id: nextProjectId,
+      status: nextStatus,
     })
     .eq("id", normalizedTaskId);
 
@@ -845,6 +869,7 @@ function renderTaskItem(task) {
           data-id="${task.id}"
           data-title="${encodeTaskTitle(task.title)}"
           data-project-id="${escapeHtml(task.project_notion_page_id || "")}"
+          data-status="${escapeHtml(task.status || "")}"
           aria-label="Edit task"
           title="Edit task"
         >
@@ -913,15 +938,17 @@ function renderTaskItem(task) {
 
 function renderTaskEditItem(task) {
   const createdAt = formatTaskDate(task.created_at);
-  const normalizedTaskStatus = normalizeTaskStatus(task.status);
-  const statusLabel = getTaskStatusLabel(task.status);
   const projectOptionsMarkup = buildTaskProjectOptionsMarkup(
     editingTaskValues.projectId,
   );
+  const statusOptionsMarkup = TASK_STATUSES.map((s) => {
+    const label = getTaskStatusLabel(s);
+    const selected = editingTaskValues.status === s ? " selected" : "";
+    return `<option value="${escapeHtml(s)}"${selected}>${escapeHtml(label)}</option>`;
+  }).join("");
   const safeCreatedAt = escapeHtml(createdAt);
   const safeCreatedAtValue = escapeHtml(task.created_at);
   const safeTaskTitle = escapeHtml(editingTaskValues.title);
-  const safeStatusLabel = escapeHtml(statusLabel);
 
   return `
     <li class="task-item task-item-editing">
@@ -941,6 +968,16 @@ function renderTaskEditItem(task) {
           </label>
 
           <label class="field inline-edit-field">
+            <span class="field-label">Status</span>
+            <select
+              class="task-inline-edit-status-select inline-edit-select"
+              data-id="${task.id}"
+            >
+              ${statusOptionsMarkup}
+            </select>
+          </label>
+
+          <label class="field inline-edit-field">
             <span class="field-label">Project</span>
             <select
               class="task-inline-edit-project-select inline-edit-select"
@@ -951,7 +988,6 @@ function renderTaskEditItem(task) {
           </label>
         </div>
         <div class="task-item-meta">
-          <span class="task-status task-status-${normalizedTaskStatus}">${safeStatusLabel}</span>
           <time class="task-created-at" datetime="${safeCreatedAtValue}">${safeCreatedAt}</time>
         </div>
       </div>
@@ -1047,7 +1083,7 @@ async function refreshSessionUI() {
   updateAuthUI(session);
 
   if (session) {
-    await Promise.all([initTasks(), initProjects()]);
+    await Promise.all([initTasks(), initProjects(), loadRemindersConfig()]);
   }
 }
 
@@ -1060,6 +1096,7 @@ function updateAuthUI(session) {
   projectsCard.toggleAttribute("hidden", !isLoggedIn);
   tasksCard.toggleAttribute("hidden", !isLoggedIn);
   pomodoroCard.toggleAttribute("hidden", !isLoggedIn);
+  remindersSettingsCard?.toggleAttribute("hidden", !isLoggedIn);
   authCard.toggleAttribute("hidden", isLoggedIn);
 
   authSignUpButton.toggleAttribute("hidden", isLoggedIn);
@@ -1074,10 +1111,13 @@ function updateAuthUI(session) {
     cancelTaskEditing();
     cancelProjectEditing();
     activeTaskFilter = "all";
+    activeTaskProjectFilter = "";
     activeProjectFilter = "all";
     visibleProjectsCount = 5;
     setActiveFilterButton(activeTaskFilter);
     setActiveProjectFilterButton(activeProjectFilter);
+    if (tasksProjectFilterSelect) tasksProjectFilterSelect.innerHTML = `<option value="">All projects</option>`;
+    if (tasksProjectFilterClear) tasksProjectFilterClear.setAttribute("hidden", true);
     tasksList.innerHTML = "";
     tasksList.setAttribute("hidden", true);
     tasksEmptyState.setAttribute("hidden", true);
@@ -1122,6 +1162,19 @@ filterButtons.forEach((button) => {
   });
 });
 
+tasksProjectFilterSelect?.addEventListener("change", () => {
+  activeTaskProjectFilter = tasksProjectFilterSelect.value;
+  tasksProjectFilterClear.toggleAttribute("hidden", !activeTaskProjectFilter);
+  applyTaskFilter(activeTaskFilter);
+});
+
+tasksProjectFilterClear?.addEventListener("click", () => {
+  activeTaskProjectFilter = "";
+  tasksProjectFilterSelect.value = "";
+  tasksProjectFilterClear.setAttribute("hidden", true);
+  applyTaskFilter(activeTaskFilter);
+});
+
 projectFilterButtons.forEach((button) => {
   button.addEventListener("click", () => {
     const filterValue = button.dataset.projectStatus;
@@ -1134,6 +1187,7 @@ projectFilterButtons.forEach((button) => {
 });
 
 function applyTaskFilter(filterValue) {
+  populateTasksProjectFilter();
   const tasks = getFilteredTasks(filterValue);
 
   updateCounter(tasks, taskCount, taskCountLabel);
@@ -1141,13 +1195,46 @@ function applyTaskFilter(filterValue) {
 }
 
 function getFilteredTasks(filterValue) {
-  if (filterValue === "all") {
-    return allTasks;
+  let tasks = allTasks;
+
+  if (filterValue !== "all") {
+    tasks = tasks.filter((task) => normalizeTaskStatus(task.status) === filterValue);
   }
 
-  return allTasks.filter((task) => {
-    return normalizeTaskStatus(task.status) === filterValue;
+  if (activeTaskProjectFilter) {
+    tasks = tasks.filter((task) => (task.project_notion_page_id || "") === activeTaskProjectFilter);
+  }
+
+  return tasks;
+}
+
+function populateTasksProjectFilter() {
+  if (!tasksProjectFilterSelect) {
+    return;
+  }
+
+  const projectIdsWithTasks = new Set(
+    allTasks.map((task) => task.project_notion_page_id || "").filter(Boolean),
+  );
+
+  const projectsWithTasks = allProjects.filter((project) => {
+    const id = project.notion_page_id || project.id;
+    return projectIdsWithTasks.has(id);
   });
+
+  const currentValue = activeTaskProjectFilter;
+
+  tasksProjectFilterSelect.innerHTML =
+    `<option value="">All projects</option>` +
+    projectsWithTasks
+      .map((project) => {
+        const id = project.notion_page_id || project.id;
+        const selected = id === currentValue ? " selected" : "";
+        return `<option value="${escapeHtml(id)}"${selected}>${escapeHtml(project.name)}</option>`;
+      })
+      .join("");
+
+  tasksProjectFilterClear?.toggleAttribute("hidden", !currentValue);
 }
 
 function updatePomodoroCurrentTask() {
@@ -2160,4 +2247,142 @@ function setBulkAddStatus(type, message = "") {
   bulkAddStatus.removeAttribute("hidden");
   bulkAddStatus.textContent = message;
   bulkAddStatus.className = `bulk-add-status bulk-add-status-${type}`;
+}
+
+// ── Apple Reminders Settings ──────────────────────────────────────────────────
+
+remindersSettingsForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  await saveRemindersConfig();
+});
+
+remindersTestButton?.addEventListener("click", async () => {
+  await testRemindersConnection();
+});
+
+async function loadRemindersConfig() {
+  if (!remindersSettingsCard) return;
+
+  const { data: userData } = await supabase.auth.getUser();
+  const user = userData?.user;
+  if (!user) return;
+
+  const { data: config } = await supabase
+    .from("reminders_config")
+    .select("*")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (!config) return;
+
+  remindersEnabledCheckbox.checked = config.enabled;
+  remindersEmailInput.value = config.icloud_username || "";
+  remindersPasswordInput.value = "";
+  remindersListNameInput.value = config.list_name || "Taskion";
+}
+
+async function saveRemindersConfig() {
+  const { data: userData } = await supabase.auth.getUser();
+  const user = userData?.user;
+  if (!user) return;
+
+  const email = remindersEmailInput.value.trim();
+  const password = remindersPasswordInput.value.trim();
+  const listName = remindersListNameInput.value.trim() || "Taskion";
+  const enabled = remindersEnabledCheckbox.checked;
+
+  if (!email) {
+    setRemindersStatus("error", "iCloud email is required.");
+    return;
+  }
+
+  const { data: existing } = await supabase
+    .from("reminders_config")
+    .select("icloud_app_password")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  const upsertData = {
+    user_id: user.id,
+    icloud_username: email,
+    list_name: listName,
+    enabled,
+    updated_at: new Date().toISOString(),
+  };
+
+  if (password) {
+    upsertData.icloud_app_password = password;
+  } else if (!existing) {
+    setRemindersStatus("error", "App-specific password is required for initial setup.");
+    return;
+  }
+
+  setRemindersStatus("loading", "Saving...");
+
+  const { error } = await supabase
+    .from("reminders_config")
+    .upsert(upsertData, { onConflict: "user_id" });
+
+  if (error) {
+    setRemindersStatus("error", error.message || "Failed to save settings.");
+    return;
+  }
+
+  remindersPasswordInput.value = "";
+  setRemindersStatus("success", "Settings saved.");
+}
+
+async function testRemindersConnection() {
+  const email = remindersEmailInput.value.trim();
+  const password = remindersPasswordInput.value.trim();
+
+  if (!email || !password) {
+    setRemindersStatus("error", "Enter your iCloud email and app-specific password first.");
+    return;
+  }
+
+  setRemindersStatus("loading", "Testing connection...");
+
+  try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData?.session?.access_token;
+
+    const res = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/reminders-test`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ icloud_username: email, icloud_app_password: password }),
+      },
+    );
+
+    const payload = await res.json().catch(() => null);
+
+    if (!res.ok || !payload?.ok) {
+      setRemindersStatus("error", payload?.error || "Connection failed.");
+      return;
+    }
+
+    setRemindersStatus("success", "Connection successful — iCloud CalDAV is reachable.");
+  } catch (err) {
+    setRemindersStatus("error", err.message || "Connection test failed.");
+  }
+}
+
+function setRemindersStatus(type, message = "") {
+  if (!remindersStatus) return;
+
+  if (type === "hidden") {
+    remindersStatus.setAttribute("hidden", true);
+    remindersStatus.textContent = "";
+    remindersStatus.className = "reminders-status";
+    return;
+  }
+
+  remindersStatus.removeAttribute("hidden");
+  remindersStatus.textContent = message;
+  remindersStatus.className = `reminders-status reminders-status-${type}`;
 }

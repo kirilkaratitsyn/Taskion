@@ -511,6 +511,21 @@
                       Done
                     </button>
                   </div>
+
+                  <div class="tasks-project-filter">
+                    <select class="tasks-project-filter-select" aria-label="Filter by project">
+                      <option value="">All projects</option>
+                    </select>
+                    <button
+                      type="button"
+                      class="tasks-project-filter-clear"
+                      aria-label="Clear project filter"
+                      title="Clear project filter"
+                      hidden
+                    >
+                      ×
+                    </button>
+                  </div>
                 </div>
 
                 <ul class="tasks-list" aria-label="Todo items"></ul>
@@ -522,6 +537,81 @@
                     future rendering, filtering, and database-backed data.
                   </p>
                 </div>
+              </div>
+            </section>
+
+            <section class="card card-reminders-settings" aria-labelledby="reminders-settings-title" hidden>
+              <div class="card-header">
+                <div>
+                  <h2 class="card-title" id="reminders-settings-title">Apple Reminders Sync</h2>
+                  <p class="card-description">
+                    Two-way sync with Apple Reminders via iCloud CalDAV.
+                  </p>
+                </div>
+                <label class="reminders-toggle-label">
+                  <input type="checkbox" class="reminders-enabled-checkbox" />
+                  <span class="reminders-toggle-text">Enabled</span>
+                </label>
+              </div>
+
+              <div class="card-content">
+                <form class="reminders-settings-form" action="#" method="post">
+                  <label class="field">
+                    <span class="field-label">iCloud email</span>
+                    <input
+                      type="email"
+                      class="reminders-icloud-email-input"
+                      placeholder="you@icloud.com"
+                      autocomplete="email"
+                    />
+                  </label>
+
+                  <label class="field">
+                    <span class="field-label">App-specific password</span>
+                    <input
+                      type="password"
+                      class="reminders-icloud-password-input"
+                      placeholder="xxxx-xxxx-xxxx-xxxx"
+                      autocomplete="off"
+                    />
+                    <span class="reminders-hint">
+                      Generate at
+                      <a href="https://appleid.apple.com" target="_blank" rel="noopener noreferrer">
+                        appleid.apple.com
+                      </a>
+                      → Security → App-Specific Passwords
+                    </span>
+                  </label>
+
+                  <label class="field">
+                    <span class="field-label">Reminders list name</span>
+                    <input
+                      type="text"
+                      class="reminders-list-name-input"
+                      placeholder="Taskion"
+                      value="Taskion"
+                    />
+                  </label>
+
+                  <div
+                    class="reminders-status"
+                    role="status"
+                    aria-live="polite"
+                    hidden
+                  ></div>
+
+                  <div class="button-row">
+                    <button type="submit" class="button button-primary reminders-save-button">
+                      Save
+                    </button>
+                    <button
+                      type="button"
+                      class="button button-secondary reminders-test-button"
+                    >
+                      Test connection
+                    </button>
+                  </div>
+                </form>
               </div>
             </section>
           </div>
