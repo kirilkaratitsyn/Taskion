@@ -12,6 +12,17 @@ const taskForm = document.querySelector(".task-form");
 const taskInput = document.querySelector(".task-input");
 const taskDescriptionInput = document.querySelector(".task-description-input");
 const taskProjectSelect = document.querySelector(".task-project-select");
+const confirmModal = document.querySelector(".confirm-modal");
+const confirmDeleteButton = document.querySelector(".confirm-delete-button");
+const confirmCancelButtons = document.querySelectorAll("[data-close-confirm-modal]");
+const bulkAddToggleButton = document.querySelector(".bulk-add-toggle-button");
+const bulkAddSection = document.querySelector(".bulk-add-section");
+const bulkAddForm = document.querySelector(".bulk-add-form");
+const bulkAddTitlesInput = document.querySelector(".bulk-add-titles-input");
+const bulkAddPreview = document.querySelector(".bulk-add-preview");
+const bulkAddPreviewList = document.querySelector(".bulk-add-preview-list");
+const bulkAddCancelButton = document.querySelector(".bulk-add-cancel-button");
+const bulkAddStatus = document.querySelector(".bulk-add-status");
 const tasksList = document.querySelector(".tasks-list");
 const tasksEmptyState = document.querySelector(".tasks-empty-state");
 const taskCount = document.querySelector(".task-count");
@@ -178,6 +189,81 @@ taskForm.addEventListener("submit", async (event) => {
   await initTasks();
 });
 
+bulkAddToggleButton?.addEventListener("click", () => {
+  const isHidden = bulkAddSection.hasAttribute("hidden");
+  bulkAddSection.toggleAttribute("hidden", !isHidden);
+  bulkAddToggleButton.setAttribute("aria-expanded", String(isHidden));
+  if (isHidden) {
+    bulkAddTitlesInput.focus();
+  } else {
+    resetBulkAddForm();
+  }
+});
+
+bulkAddCancelButton?.addEventListener("click", () => {
+  bulkAddSection.setAttribute("hidden", true);
+  bulkAddToggleButton.setAttribute("aria-expanded", "false");
+  resetBulkAddForm();
+});
+
+bulkAddTitlesInput?.addEventListener("input", () => {
+  renderBulkAddPreview();
+  setBulkAddStatus("hidden");
+});
+
+bulkAddForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  const parsed = parseBulkEntries(bulkAddTitlesInput.value);
+
+  if (parsed.length === 0) {
+    bulkAddTitlesInput.focus();
+    return;
+  }
+
+  const invalidEntry = parsed.find((entry) => !entry.projectId);
+  if (invalidEntry) {
+    setBulkAddStatus("error", `No matching project found for "${invalidEntry.projectRaw || "unknown"}". Check spelling.`);
+    return;
+  }
+
+  setBulkAddStatus("loading", `Creating ${parsed.length} task${parsed.length > 1 ? "s" : ""}...`);
+  bulkAddForm.querySelector(".bulk-add-submit-button").disabled = true;
+
+  try {
+    const { data: userData } = await supabase.auth.getUser();
+    const user = userData.user;
+
+    const rows = parsed.map((entry) => ({
+      title: entry.title,
+      description: entry.description,
+      status: normalizeTaskStatus(TASK_STATUSES[0]),
+      project_notion_page_id: entry.projectId,
+      user_id: user.id,
+    }));
+
+    const { error } = await supabase.from("tasks").insert(rows);
+
+    if (error) {
+      throw error;
+    }
+
+    setBulkAddStatus("success", `${parsed.length} task${parsed.length > 1 ? "s" : ""} created.`);
+    resetBulkAddForm();
+    await initTasks();
+
+    setTimeout(() => {
+      setBulkAddStatus("hidden");
+      bulkAddSection.setAttribute("hidden", true);
+      bulkAddToggleButton.setAttribute("aria-expanded", "false");
+    }, 1800);
+  } catch (err) {
+    setBulkAddStatus("error", err.message || "Failed to create tasks.");
+  } finally {
+    bulkAddForm.querySelector(".bulk-add-submit-button").disabled = false;
+  }
+});
+
 tasksList.addEventListener("click", async (event) => {
   const buttonEdit = event.target.closest(".task-edit-button");
   const buttonSave = event.target.closest(".task-inline-save-button");
@@ -224,9 +310,7 @@ tasksList.addEventListener("click", async (event) => {
 
   if (buttonDelete) {
     const taskId = buttonDelete.dataset.id;
-
-    await deleteTask(taskId);
-    await initTasks();
+    openConfirmModal(taskId);
     return;
   }
 
@@ -331,6 +415,38 @@ projectsList.addEventListener("change", (event) => {
 taskDetailsCloseButtons.forEach((closeButton) => {
   closeButton.addEventListener("click", closeTaskDetailsModal);
 });
+
+let pendingDeleteTaskId = "";
+
+confirmCancelButtons.forEach((btn) => {
+  btn.addEventListener("click", closeConfirmModal);
+});
+
+confirmDeleteButton?.addEventListener("click", async () => {
+  if (!pendingDeleteTaskId) {
+    return;
+  }
+
+  await deleteTask(pendingDeleteTaskId);
+  closeConfirmModal();
+  await initTasks();
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !confirmModal?.hasAttribute("hidden")) {
+    closeConfirmModal();
+  }
+});
+
+function openConfirmModal(taskId) {
+  pendingDeleteTaskId = taskId;
+  confirmModal.removeAttribute("hidden");
+}
+
+function closeConfirmModal() {
+  pendingDeleteTaskId = "";
+  confirmModal.setAttribute("hidden", true);
+}
 
 taskDetailsDialog?.addEventListener("click", (event) => {
   event.stopPropagation();
@@ -1724,6 +1840,7 @@ function populateTaskProjectOptions() {
     taskProjectSelect.innerHTML = `<option value="">Sync projects first</option>`;
     taskProjectSelect.value = "";
   }
+
 }
 
 function getTaskProjectName(task) {
@@ -1958,4 +2075,89 @@ function setTaskDetailsEditState(nextState) {
   }
 
   setTaskDetailsTab("source");
+}
+
+function parseBulkEntries(raw) {
+  return raw
+    .split(";")
+    .map((segment) => {
+      const parts = segment.split(":").map((p) => p.trim());
+      let title = "";
+      let description = "";
+      let projectRaw = "";
+
+      if (parts.length === 1) {
+        title = parts[0];
+      } else if (parts.length === 2) {
+        title = parts[0];
+        projectRaw = parts[1];
+      } else {
+        title = parts[0];
+        projectRaw = parts[parts.length - 1];
+        description = parts.slice(1, -1).filter(Boolean).join(":");
+      }
+
+      const projectId = resolveProjectIdByName(projectRaw);
+      return { title, description, projectRaw, projectId };
+    })
+    .filter((entry) => entry.title.length > 0);
+}
+
+function resolveProjectIdByName(name) {
+  if (!name) {
+    return "";
+  }
+
+  const normalizedName = name.toLowerCase();
+  const match = allProjects.find((project) => {
+    return (project.name || "").toLowerCase() === normalizedName;
+  });
+
+  return match ? (match.notion_page_id || match.id) : "";
+}
+
+function renderBulkAddPreview() {
+  const entries = parseBulkEntries(bulkAddTitlesInput.value);
+
+  if (entries.length === 0) {
+    bulkAddPreview.setAttribute("hidden", true);
+    return;
+  }
+
+  bulkAddPreviewList.innerHTML = entries
+    .map((entry) => {
+      const projectLabel = entry.projectId
+        ? escapeHtml(entry.projectRaw)
+        : `<span class="bulk-preview-unknown-project">${escapeHtml(entry.projectRaw || "no project")}</span>`;
+      const descLabel = entry.description
+        ? ` <span class="bulk-preview-desc">${escapeHtml(entry.description)}</span>`
+        : "";
+
+      return `<li class="bulk-add-preview-item">
+        <strong>${escapeHtml(entry.title)}</strong>${descLabel}
+        <span class="bulk-preview-project">${projectLabel}</span>
+      </li>`;
+    })
+    .join("");
+  bulkAddPreview.removeAttribute("hidden");
+}
+
+function resetBulkAddForm() {
+  bulkAddTitlesInput.value = "";
+  bulkAddPreview.setAttribute("hidden", true);
+  bulkAddPreviewList.innerHTML = "";
+  setBulkAddStatus("hidden");
+}
+
+function setBulkAddStatus(type, message = "") {
+  if (type === "hidden") {
+    bulkAddStatus.setAttribute("hidden", true);
+    bulkAddStatus.textContent = "";
+    bulkAddStatus.className = "bulk-add-status";
+    return;
+  }
+
+  bulkAddStatus.removeAttribute("hidden");
+  bulkAddStatus.textContent = message;
+  bulkAddStatus.className = `bulk-add-status bulk-add-status-${type}`;
 }
