@@ -376,6 +376,18 @@ input {
   transition: border-color var(--transition), box-shadow var(--transition);
 }
 
+.field textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--input);
+  border-radius: calc(var(--radius) - 2px);
+  background: var(--background);
+  color: var(--foreground);
+  transition: border-color var(--transition), box-shadow var(--transition);
+  resize: vertical;
+  min-height: 90px;
+}
+
 .field select {
   width: 100%;
   min-height: 40px;
@@ -399,6 +411,10 @@ input {
   border-color: #d4d4d8;
 }
 
+.field textarea:hover {
+  border-color: #d4d4d8;
+}
+
 .field input:focus {
   outline: none;
   border-color: #a1a1aa;
@@ -406,6 +422,12 @@ input {
 }
 
 .field select:focus {
+  outline: none;
+  border-color: #a1a1aa;
+  box-shadow: 0 0 0 3px var(--ring);
+}
+
+.field textarea:focus {
   outline: none;
   border-color: #a1a1aa;
   box-shadow: 0 0 0 3px var(--ring);
@@ -588,6 +610,36 @@ input {
   font-size: 0.95rem;
   font-weight: 600;
   line-height: 1.45;
+}
+
+.task-item-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.task-view-details-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  min-width: 30px;
+  min-height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--muted-foreground);
+  background: #ffffff;
+}
+
+.task-view-details-button:hover {
+  color: #1d4ed8;
+  border-color: #93c5fd;
+  background: #eff6ff;
+}
+
+.task-view-details-icon {
+  width: 15px;
+  height: 15px;
 }
 
 .task-item-meta {
@@ -1351,6 +1403,149 @@ input {
 
 .message-muted .message-indicator {
   background: #a1a1aa;
+}
+
+.task-details-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+}
+
+.task-details-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(9, 9, 11, 0.45);
+}
+
+.task-details-dialog {
+  position: relative;
+  width: min(820px, calc(100vw - 24px));
+  max-height: calc(100vh - 36px);
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + 2px);
+  background: #ffffff;
+  box-shadow: var(--shadow-lg);
+  padding: 18px;
+  display: grid;
+  gap: 14px;
+}
+
+.task-details-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.task-details-title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.task-details-close-button {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.task-details-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.task-details-content {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  min-height: 220px;
+}
+
+.task-details-preview-task-title {
+  margin: 0 0 10px;
+  font-size: 1.05rem;
+}
+
+.task-details-preview-meta {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.task-details-preview-meta-item {
+  margin: 0;
+  color: var(--foreground);
+  font-size: 0.9rem;
+}
+
+.task-details-preview-meta-label {
+  color: var(--muted-foreground);
+  margin-right: 6px;
+}
+
+.task-details-preview-description {
+  color: var(--foreground);
+  line-height: 1.6;
+}
+
+.task-details-preview-description-editing {
+  min-height: 120px;
+  padding: 10px;
+  border: 1px dashed #93c5fd;
+  border-radius: 10px;
+  background: #f8fbff;
+}
+
+.task-details-preview-description-editing:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ring);
+}
+
+.task-details-empty {
+  margin: 0;
+  color: var(--muted-foreground);
+}
+
+.task-details-source-view {
+  display: grid;
+  gap: 12px;
+}
+
+.task-details-title-input:disabled,
+.task-details-description-input:disabled {
+  background: #f9fafb;
+  color: #71717a;
+}
+
+.task-details-status-input:disabled,
+.task-details-project-state-input:disabled,
+.task-details-title-input:disabled {
+  background: #f5f6f8;
+  color: #52525b;
+  border-color: #e4e4e7;
+  cursor: not-allowed;
+  font-weight: 500;
+}
+
+.task-details-source-view .task-details-description-input:not(:disabled) {
+  border-style: dashed;
+  border-width: 2px;
+  border-color: #93c5fd;
+  background: #f8fbff;
+}
+
+.task-details-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 }
 
 @media (max-width: 900px) {

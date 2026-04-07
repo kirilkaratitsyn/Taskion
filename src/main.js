@@ -10,6 +10,7 @@ import {
 
 const taskForm = document.querySelector(".task-form");
 const taskInput = document.querySelector(".task-input");
+const taskDescriptionInput = document.querySelector(".task-description-input");
 const taskProjectSelect = document.querySelector(".task-project-select");
 const tasksList = document.querySelector(".tasks-list");
 const tasksEmptyState = document.querySelector(".tasks-empty-state");
@@ -52,6 +53,23 @@ const projectsCountLabel = document.querySelector(".projects-count-label");
 const projectFilterButtons = document.querySelectorAll(".projects-toolbar .chip");
 const projectsPagination = document.querySelector(".projects-pagination");
 const projectsLoadMoreButton = document.querySelector(".projects-load-more-button");
+const taskDetailsModal = document.querySelector(".task-details-modal");
+const taskDetailsDialog = document.querySelector(".task-details-dialog");
+const taskDetailsCloseButtons = document.querySelectorAll("[data-close-task-modal]");
+const taskDetailsTabButtons = document.querySelectorAll(".task-details-tab-button");
+const taskDetailsPreviewView = document.querySelector('.task-details-preview-view[data-view="preview"]');
+const taskDetailsSourceView = document.querySelector('.task-details-source-view[data-view="source"]');
+const taskDetailsPreviewTaskTitle = document.querySelector(".task-details-preview-task-title");
+const taskDetailsPreviewTaskStatus = document.querySelector(".task-details-preview-task-status");
+const taskDetailsPreviewProjectState = document.querySelector(".task-details-preview-project-state");
+const taskDetailsPreviewDescription = document.querySelector(".task-details-preview-description");
+const taskDetailsTitleInput = document.querySelector(".task-details-title-input");
+const taskDetailsStatusInput = document.querySelector(".task-details-status-input");
+const taskDetailsProjectStateInput = document.querySelector(".task-details-project-state-input");
+const taskDetailsDescriptionInput = document.querySelector(".task-details-description-input");
+const taskDetailsEditToggleButton = document.querySelector(".task-details-edit-toggle-button");
+const taskDetailsSaveButton = document.querySelector(".task-details-save-button");
+const taskDetailsCancelButton = document.querySelector(".task-details-cancel-button");
 
 let allTasks = [];
 let activeTaskFilter = "all";
@@ -73,6 +91,13 @@ let editingProjectValues = {
   priority: "",
 };
 let savingProjectId = "";
+let activeTaskDetailsId = "";
+let activeTaskDetailsTab = "preview";
+let isTaskDetailsEditing = false;
+let taskDetailsDraft = {
+  title: "",
+  description: "",
+};
 
 authSignUpButton.addEventListener("click", async () => {
   const email = authEmailInput.value.trim();
@@ -139,14 +164,16 @@ projectsLoadMoreButton?.addEventListener("click", () => {
 taskForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const title = taskInput.value.trim();
+  const description = taskDescriptionInput.value.trim();
   const projectId = taskProjectSelect.value;
 
   if (!taskForm.reportValidity()) {
     return;
   }
 
-  await createTask(title, projectId);
+  await createTask(title, description, projectId);
   clearInput(taskInput);
+  clearInput(taskDescriptionInput);
   taskProjectSelect.value = "";
   await initTasks();
 });
@@ -157,6 +184,7 @@ tasksList.addEventListener("click", async (event) => {
   const buttonCancel = event.target.closest(".task-inline-cancel-button");
   const buttonNext = event.target.closest(".task-next-status-button");
   const buttonDelete = event.target.closest(".task-delete-button");
+  const buttonViewDetails = event.target.closest(".task-view-details-button");
 
   if (buttonEdit) {
     const taskId = buttonEdit.dataset.id;
@@ -199,6 +227,11 @@ tasksList.addEventListener("click", async (event) => {
 
     await deleteTask(taskId);
     await initTasks();
+    return;
+  }
+
+  if (buttonViewDetails) {
+    openTaskDetailsModal(buttonViewDetails.dataset.id);
   }
 });
 
@@ -295,6 +328,103 @@ projectsList.addEventListener("change", (event) => {
   }
 });
 
+taskDetailsCloseButtons.forEach((closeButton) => {
+  closeButton.addEventListener("click", closeTaskDetailsModal);
+});
+
+taskDetailsDialog?.addEventListener("click", (event) => {
+  event.stopPropagation();
+});
+
+taskDetailsTabButtons.forEach((tabButton) => {
+  tabButton.addEventListener("click", () => {
+    setTaskDetailsTab(tabButton.dataset.tab || "preview");
+  });
+});
+
+taskDetailsEditToggleButton?.addEventListener("click", () => {
+  setTaskDetailsEditState(!isTaskDetailsEditing);
+});
+
+taskDetailsCancelButton?.addEventListener("click", () => {
+  const activeTask = getTaskById(activeTaskDetailsId);
+  if (!activeTask) {
+    closeTaskDetailsModal();
+    return;
+  }
+  taskDetailsDraft = {
+    title: activeTask.title || "",
+    description: activeTask.description || "",
+  };
+  renderTaskDetailsModal();
+  setTaskDetailsEditState(false);
+});
+
+taskDetailsSaveButton?.addEventListener("click", async () => {
+  const activeTask = getTaskById(activeTaskDetailsId);
+  if (!activeTask) {
+    closeTaskDetailsModal();
+    return;
+  }
+
+  const nextDescription = taskDetailsDraft.description;
+
+  const { error } = await supabase
+    .from("tasks")
+    .update({
+      description: nextDescription,
+    })
+    .eq("id", activeTaskDetailsId);
+
+  if (error) {
+    throw error;
+  }
+
+  await initTasks();
+  taskDetailsDraft = {
+    title: activeTask.title || "",
+    description: nextDescription,
+  };
+  renderTaskDetailsModal();
+  setTaskDetailsEditState(false);
+});
+
+taskDetailsTitleInput?.addEventListener("input", () => {
+  taskDetailsDraft = {
+    ...taskDetailsDraft,
+    title: taskDetailsTitleInput.value,
+  };
+});
+
+taskDetailsDescriptionInput?.addEventListener("input", () => {
+  taskDetailsDraft = {
+    ...taskDetailsDraft,
+    description: taskDetailsDescriptionInput.value,
+  };
+  if (isTaskDetailsEditing && activeTaskDetailsTab === "source") {
+    taskDetailsPreviewDescription.innerHTML =
+      taskDetailsDraft.description || "<p class=\"task-details-empty\">No description yet.</p>";
+  }
+});
+
+taskDetailsPreviewDescription?.addEventListener("input", () => {
+  if (!isTaskDetailsEditing) {
+    return;
+  }
+
+  taskDetailsDraft = {
+    ...taskDetailsDraft,
+    description: taskDetailsPreviewDescription.innerHTML,
+  };
+  taskDetailsDescriptionInput.value = taskDetailsDraft.description;
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !taskDetailsModal?.hasAttribute("hidden")) {
+    closeTaskDetailsModal();
+  }
+});
+
 document.addEventListener("pomodoro:state-change", (event) => {
   isPomodoroRunning = Boolean(event.detail?.isRunning);
   currentPomodoroMode = event.detail?.mode || "focus";
@@ -302,7 +432,7 @@ document.addEventListener("pomodoro:state-change", (event) => {
   updatePomodoroCurrentTask();
 });
 
-async function createTask(title, projectId) {
+async function createTask(title, description, projectId) {
   if (!title || !projectId) {
     return;
   }
@@ -313,6 +443,7 @@ async function createTask(title, projectId) {
   const { error } = await supabase.from("tasks").insert([
     {
       title: title,
+      description: description || "",
       status: normalizeTaskStatus(TASK_STATUSES[0]),
       project_notion_page_id: projectId,
       user_id: user.id,
@@ -558,6 +689,8 @@ function renderTaskItem(task) {
   const safeCreatedAt = escapeHtml(createdAt);
   const safeCreatedAtValue = escapeHtml(task.created_at);
   const safeProjectName = escapeHtml(projectName);
+  const safeTaskId = escapeHtml(task.id);
+  const safeViewLabel = escapeHtml(`View details for ${task.title}`);
   const projectMarkup = projectName
     ? `<span class="task-project-pill">${safeProjectName}</span>`
     : "";
@@ -565,7 +698,23 @@ function renderTaskItem(task) {
   return `
     <li class="task-item">
       <div class="task-item-main">
-        <p class="task-item-title">${safeTaskTitle}</p>
+        <div class="task-item-title-row">
+          <p class="task-item-title">${safeTaskTitle}</p>
+          <button
+            type="button"
+            class="task-view-details-button"
+            data-id="${safeTaskId}"
+            aria-label="${safeViewLabel}"
+            title="View details"
+          >
+            <svg class="task-view-details-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 5c5.5 0 9.27 4.11 10.5 7-1.23 2.89-5 7-10.5 7S2.73 14.89 1.5 12C2.73 9.11 6.5 5 12 5zm0 2C8.06 7 5.02 9.77 3.72 12 5.02 14.23 8.06 17 12 17s6.98-2.77 8.28-5C18.98 9.77 15.94 7 12 7zm0 2.25A2.75 2.75 0 1 1 9.25 12 2.75 2.75 0 0 1 12 9.25z"
+                fill="currentColor"
+              ></path>
+            </svg>
+          </button>
+        </div>
         <div class="task-item-meta">
           <span class="task-status task-status-${taskStatus}">${safeStatusLabel}</span>
           ${projectMarkup}
@@ -748,6 +897,13 @@ async function initTasks() {
     !allTasks.some((task) => getTaskIdValue(task.id) === editingTaskId)
   ) {
     cancelTaskEditing();
+  }
+
+  if (
+    activeTaskDetailsId &&
+    !allTasks.some((task) => getTaskIdValue(task.id) === activeTaskDetailsId)
+  ) {
+    closeTaskDetailsModal();
   }
 
   applyTaskFilter(activeTaskFilter);
@@ -1695,4 +1851,111 @@ function normalizeTaskStatus(status) {
 
 function getTaskIdValue(taskId) {
   return String(taskId || "");
+}
+
+function getTaskById(taskId) {
+  const normalizedTaskId = getTaskIdValue(taskId);
+  return allTasks.find((task) => getTaskIdValue(task.id) === normalizedTaskId) || null;
+}
+
+function getTaskProject(task) {
+  if (!task) {
+    return null;
+  }
+
+  const projectId = task.project_notion_page_id || "";
+
+  if (!projectId) {
+    return null;
+  }
+
+  return allProjects.find((project) => {
+    return (project.notion_page_id || project.id) === projectId;
+  }) || null;
+}
+
+function openTaskDetailsModal(taskId) {
+  const task = getTaskById(taskId);
+  if (!task || !taskDetailsModal) {
+    return;
+  }
+
+  activeTaskDetailsId = getTaskIdValue(task.id);
+  activeTaskDetailsTab = "preview";
+  isTaskDetailsEditing = false;
+  taskDetailsDraft = {
+    title: task.title || "",
+    description: task.description || "",
+  };
+
+  renderTaskDetailsModal();
+  setTaskDetailsEditState(false);
+  setTaskDetailsTab("preview");
+  taskDetailsModal.removeAttribute("hidden");
+}
+
+function closeTaskDetailsModal() {
+  if (!taskDetailsModal) {
+    return;
+  }
+
+  taskDetailsModal.setAttribute("hidden", true);
+  activeTaskDetailsId = "";
+  isTaskDetailsEditing = false;
+}
+
+function renderTaskDetailsModal() {
+  if (!taskDetailsModal) {
+    return;
+  }
+
+  const activeTask = getTaskById(activeTaskDetailsId);
+  const taskStatusLabel = getTaskStatusLabel(activeTask?.status || "") || "Unknown";
+  const linkedProject = getTaskProject(activeTask);
+  const projectState = linkedProject?.status || "No project state";
+
+  taskDetailsTitleInput.value = taskDetailsDraft.title;
+  taskDetailsStatusInput.value = taskStatusLabel;
+  taskDetailsProjectStateInput.value = projectState;
+  taskDetailsDescriptionInput.value = taskDetailsDraft.description;
+  taskDetailsPreviewTaskTitle.textContent = taskDetailsDraft.title || "Untitled task";
+  taskDetailsPreviewTaskStatus.textContent = taskStatusLabel;
+  taskDetailsPreviewProjectState.textContent = projectState;
+  taskDetailsPreviewDescription.innerHTML =
+    taskDetailsDraft.description || "<p class=\"task-details-empty\">No description yet.</p>";
+}
+
+function setTaskDetailsTab(tabValue) {
+  activeTaskDetailsTab = tabValue === "source" ? "source" : "preview";
+  taskDetailsTabButtons.forEach((tabButton) => {
+    const isActive = tabButton.dataset.tab === activeTaskDetailsTab;
+    tabButton.classList.toggle("chip-active", isActive);
+  });
+
+  const isPreviewTab = activeTaskDetailsTab === "preview";
+  taskDetailsPreviewView?.toggleAttribute("hidden", !isPreviewTab);
+  taskDetailsSourceView?.toggleAttribute("hidden", isPreviewTab);
+}
+
+function setTaskDetailsEditState(nextState) {
+  isTaskDetailsEditing = Boolean(nextState);
+  taskDetailsEditToggleButton.textContent = isTaskDetailsEditing ? "Stop editing" : "Edit";
+  taskDetailsTitleInput.disabled = true;
+  taskDetailsStatusInput.disabled = true;
+  taskDetailsProjectStateInput.disabled = true;
+  taskDetailsDescriptionInput.disabled = !isTaskDetailsEditing;
+  taskDetailsPreviewDescription.contentEditable = isTaskDetailsEditing ? "true" : "false";
+  taskDetailsPreviewDescription.classList.toggle(
+    "task-details-preview-description-editing",
+    isTaskDetailsEditing,
+  );
+  taskDetailsSaveButton.toggleAttribute("hidden", !isTaskDetailsEditing);
+  taskDetailsCancelButton.toggleAttribute("hidden", !isTaskDetailsEditing);
+
+  if (!isTaskDetailsEditing) {
+    renderTaskDetailsModal();
+    return;
+  }
+
+  setTaskDetailsTab("source");
 }

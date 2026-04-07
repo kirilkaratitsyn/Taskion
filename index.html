@@ -274,6 +274,16 @@
                   </label>
 
                   <label class="field">
+                    <span class="field-label">Description (HTML)</span>
+                    <textarea
+                      name="description"
+                      class="task-description-input"
+                      placeholder="<p>Optional formatted description...</p>"
+                      rows="4"
+                    ></textarea>
+                  </label>
+
+                  <label class="field">
                     <span class="field-label">Project</span>
                     <select
                       name="project"
@@ -438,6 +448,98 @@
           </div>
         </section>
       </main>
+    </div>
+
+    <div class="task-details-modal" hidden>
+      <div class="task-details-backdrop" data-close-task-modal></div>
+      <section
+        class="task-details-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="task-details-title"
+      >
+        <header class="task-details-header">
+          <h3 class="task-details-title" id="task-details-title">Task details</h3>
+          <button
+            type="button"
+            class="task-details-close-button"
+            data-close-task-modal
+            aria-label="Close task details"
+            title="Close"
+          >
+            ×
+          </button>
+        </header>
+
+        <div class="task-details-controls">
+          <div class="segmented-control" role="tablist" aria-label="Task detail views">
+            <button
+              type="button"
+              class="chip chip-active task-details-tab-button"
+              data-tab="preview"
+              role="tab"
+            >
+              Preview
+            </button>
+            <button
+              type="button"
+              class="chip task-details-tab-button"
+              data-tab="source"
+              role="tab"
+            >
+              Source
+            </button>
+          </div>
+          <button type="button" class="button button-secondary task-details-edit-toggle-button">
+            Edit
+          </button>
+        </div>
+
+        <div class="task-details-content">
+          <section class="task-details-preview-view" data-view="preview">
+            <h4 class="task-details-preview-task-title"></h4>
+            <div class="task-details-preview-meta">
+              <p class="task-details-preview-meta-item">
+                <span class="task-details-preview-meta-label">Task status:</span>
+                <span class="task-details-preview-task-status"></span>
+              </p>
+              <p class="task-details-preview-meta-item">
+                <span class="task-details-preview-meta-label">Project state:</span>
+                <span class="task-details-preview-project-state"></span>
+              </p>
+            </div>
+            <div class="task-details-preview-description"></div>
+          </section>
+
+          <section class="task-details-source-view" data-view="source" hidden>
+            <label class="field">
+              <span class="field-label">Short title</span>
+              <input type="text" class="task-details-title-input" disabled />
+            </label>
+            <label class="field">
+              <span class="field-label">Task status</span>
+              <input type="text" class="task-details-status-input" disabled />
+            </label>
+            <label class="field">
+              <span class="field-label">Project state</span>
+              <input type="text" class="task-details-project-state-input" disabled />
+            </label>
+            <label class="field">
+              <span class="field-label">Description HTML</span>
+              <textarea class="task-details-description-input" rows="10" disabled></textarea>
+            </label>
+          </section>
+        </div>
+
+        <footer class="task-details-footer">
+          <button type="button" class="button button-secondary task-details-cancel-button" hidden>
+            Cancel
+          </button>
+          <button type="button" class="button button-primary task-details-save-button" hidden>
+            Save
+          </button>
+        </footer>
+      </section>
     </div>
 
     <script type="module" src="./src/main.js"></script>
