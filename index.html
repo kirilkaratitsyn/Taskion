@@ -264,110 +264,6 @@
 
           <div class="layout-column layout-column-right">
             <section
-              class="card card-form"
-              aria-labelledby="task-form-title"
-              hidden
-            >
-              <div class="card-header">
-                <div>
-                  <h2 class="card-title" id="task-form-title">
-                    Add a new task
-                  </h2>
-                </div>
-              </div>
-
-              <div class="card-content">
-                <form class="task-form" action="#" method="get">
-                  <label class="field">
-                    <span class="field-label">Task title</span>
-                    <input
-                      type="text"
-                      name="task"
-                      class="task-input"
-                      placeholder="Write a new task..."
-                      autocomplete="off"
-                    />
-                  </label>
-
-                  <label class="field">
-                    <span class="field-label">Description (HTML)</span>
-                    <textarea
-                      name="description"
-                      class="task-description-input"
-                      placeholder="<p>Optional formatted description...</p>"
-                      rows="4"
-                    ></textarea>
-                  </label>
-
-                  <label class="field">
-                    <span class="field-label">Project</span>
-                    <select name="project" class="task-project-select" required>
-                      <option value="">Choose a project</option>
-                    </select>
-                  </label>
-
-                  <div class="button-row">
-                    <button type="submit" class="button button-primary">
-                      Add Task
-                    </button>
-                    <button
-                      type="button"
-                      class="button button-secondary bulk-add-toggle-button"
-                      aria-expanded="false"
-                      aria-controls="bulk-add-section"
-                    >
-                      Bulk Add
-                    </button>
-                  </div>
-                </form>
-
-                <div class="bulk-add-section" id="bulk-add-section" hidden>
-                  <div class="bulk-add-divider">
-                    <span class="bulk-add-divider-label">Bulk add tasks</span>
-                  </div>
-                  <form class="bulk-add-form" action="#" method="get">
-                    <label class="field">
-                      <span class="field-label">Tasks</span>
-                      <input
-                        type="text"
-                        class="bulk-add-titles-input"
-                        placeholder="Fix bug::FIXY DEV; New feature:HTML desc:BazarBizar"
-                        autocomplete="off"
-                      />
-                      <span class="bulk-add-hint">
-                        Format: <code>Title:Description:Project</code> — separate tasks with <code>;</code>
-                      </span>
-                    </label>
-
-                    <div class="bulk-add-preview" hidden>
-                      <span class="bulk-add-preview-label"
-                        >Tasks to create:</span
-                      >
-                      <ul class="bulk-add-preview-list"></ul>
-                    </div>
-
-                    <div class="button-row">
-                      <button
-                        type="submit"
-                        class="button button-primary bulk-add-submit-button"
-                      >
-                        Add Tasks
-                      </button>
-                      <button
-                        type="button"
-                        class="button button-secondary bulk-add-cancel-button"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-
-                    <div class="bulk-add-status" hidden></div>
-                  </form>
-                </div>
-              </div>
-            </section>
-
-            <section
               class="card card-projects"
               aria-labelledby="projects-title"
               hidden
@@ -481,14 +377,132 @@
                 <div>
                   <h2 class="card-title" id="tasks-title">To do</h2>
                 </div>
-                <span class="count-badge">
-                  <span class="task-count">0</span>
-                  <span class="task-count-label">items</span>
-                </span>
+                <div class="card-header-actions">
+                  <span class="count-badge">
+                    <span class="task-count">0</span>
+                    <span class="task-count-label">items</span>
+                  </span>
+                  <button
+                    type="button"
+                    class="button button-secondary task-composer-toggle-button"
+                    aria-expanded="false"
+                    aria-controls="task-composer-panel"
+                  >
+                    <svg
+                      class="task-composer-toggle-icon"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42 9.3-9.29H14V3z"
+                        fill="currentColor"
+                      ></path>
+                      <path
+                        d="M5 5h6v2H7v10h10v-4h2v6H5V5z"
+                        fill="currentColor"
+                      ></path>
+                    </svg>
+                    <span class="task-composer-toggle-label">Create task</span>
+                  </button>
+                </div>
               </div>
 
               <div class="card-content">
-                <div class="tasks-toolbar" aria-labelledby="controls-title">
+                <div
+                  class="task-composer-panel"
+                  id="task-composer-panel"
+                  aria-hidden="true"
+                >
+                  <form class="task-form" action="#" method="get">
+                    <label class="field">
+                      <span class="field-label">Task title</span>
+                      <input
+                        type="text"
+                        name="task"
+                        class="task-input"
+                        placeholder="Write a new task..."
+                        autocomplete="off"
+                      />
+                    </label>
+
+                    <label class="field">
+                      <span class="field-label">Description (HTML)</span>
+                      <textarea
+                        name="description"
+                        class="task-description-input"
+                        placeholder="<p>Optional formatted description...</p>"
+                        rows="4"
+                      ></textarea>
+                    </label>
+
+                    <label class="field">
+                      <span class="field-label">Project</span>
+                      <select name="project" class="task-project-select" required>
+                        <option value="">Choose a project</option>
+                      </select>
+                    </label>
+
+                    <div class="button-row">
+                      <button type="submit" class="button button-primary">
+                        Add Task
+                      </button>
+                      <button
+                        type="button"
+                        class="button button-secondary bulk-add-toggle-button"
+                        aria-expanded="false"
+                        aria-controls="bulk-add-section"
+                      >
+                        Bulk Add
+                      </button>
+                    </div>
+                  </form>
+
+                  <div class="bulk-add-section" id="bulk-add-section" hidden>
+                    <div class="bulk-add-divider">
+                      <span class="bulk-add-divider-label">Bulk add tasks</span>
+                    </div>
+                    <form class="bulk-add-form" action="#" method="get">
+                      <label class="field">
+                        <span class="field-label">Tasks</span>
+                        <input
+                          type="text"
+                          class="bulk-add-titles-input"
+                          placeholder="Fix bug::FIXY DEV; New feature:HTML desc:BazarBizar"
+                          autocomplete="off"
+                        />
+                        <span class="bulk-add-hint">
+                          Format: <code>Title:Description:Project</code> — separate tasks with <code>;</code>
+                        </span>
+                      </label>
+
+                      <div class="bulk-add-preview" hidden>
+                        <span class="bulk-add-preview-label"
+                          >Tasks to create:</span
+                        >
+                        <ul class="bulk-add-preview-list"></ul>
+                      </div>
+
+                      <div class="button-row">
+                        <button
+                          type="submit"
+                          class="button button-primary bulk-add-submit-button"
+                        >
+                          Add Tasks
+                        </button>
+                        <button
+                          type="button"
+                          class="button button-secondary bulk-add-cancel-button"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+
+                      <div class="bulk-add-status" hidden></div>
+                    </form>
+                  </div>
+                </div>
+
+                <div class="tasks-toolbar" aria-label="Task controls">
                   <div
                     class="segmented-control"
                     role="group"
@@ -529,6 +543,15 @@
                 </div>
 
                 <ul class="tasks-list" aria-label="Todo items"></ul>
+
+                <div class="tasks-pagination" hidden>
+                  <button
+                    type="button"
+                    class="button button-secondary tasks-load-more-button"
+                  >
+                    Load more
+                  </button>
+                </div>
 
                 <div class="empty-state tasks-empty-state" role="status" hidden>
                   <h3>No tasks yet</h3>

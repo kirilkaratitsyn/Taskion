@@ -12,6 +12,9 @@ const taskForm = document.querySelector(".task-form");
 const taskInput = document.querySelector(".task-input");
 const taskDescriptionInput = document.querySelector(".task-description-input");
 const taskProjectSelect = document.querySelector(".task-project-select");
+const taskComposerPanel = document.querySelector(".task-composer-panel");
+const taskComposerToggleButton = document.querySelector(".task-composer-toggle-button");
+const taskComposerToggleLabel = document.querySelector(".task-composer-toggle-label");
 const confirmModal = document.querySelector(".confirm-modal");
 const confirmDeleteButton = document.querySelector(".confirm-delete-button");
 const confirmCancelButtons = document.querySelectorAll("[data-close-confirm-modal]");
@@ -25,9 +28,10 @@ const bulkAddCancelButton = document.querySelector(".bulk-add-cancel-button");
 const bulkAddStatus = document.querySelector(".bulk-add-status");
 const tasksList = document.querySelector(".tasks-list");
 const tasksEmptyState = document.querySelector(".tasks-empty-state");
+const tasksPagination = document.querySelector(".tasks-pagination");
+const tasksLoadMoreButton = document.querySelector(".tasks-load-more-button");
 const taskCount = document.querySelector(".task-count");
 const taskCountLabel = document.querySelector(".task-count-label");
-const taskFormCard = document.querySelector(".card-form");
 const projectsCard = document.querySelector(".card-projects");
 const tasksCard = document.querySelector(".card-tasks");
 const pomodoroCard = document.querySelector(".card-pomodoro");
@@ -96,6 +100,8 @@ let allTasks = [];
 let activeTaskFilter = "all";
 let activeTaskProjectFilter = "";
 let activeProjectFilter = "all";
+let visibleTasksCount = 5;
+let isTaskComposerOpen = false;
 let isLoggedIn = false;
 let isPomodoroRunning = false;
 let currentPomodoroMode = "focus";
@@ -184,6 +190,19 @@ projectsLoadMoreButton?.addEventListener("click", () => {
   applyProjectFilter(activeProjectFilter);
 });
 
+tasksLoadMoreButton?.addEventListener("click", () => {
+  visibleTasksCount += 5;
+  applyTaskFilter(activeTaskFilter);
+});
+
+taskComposerToggleButton?.addEventListener("click", () => {
+  if (taskComposerToggleButton.disabled) {
+    return;
+  }
+
+  toggleTaskComposer();
+});
+
 taskForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const title = taskInput.value.trim();
@@ -198,6 +217,7 @@ taskForm.addEventListener("submit", async (event) => {
   clearInput(taskInput);
   clearInput(taskDescriptionInput);
   taskProjectSelect.value = "";
+  closeTaskComposer();
   await initTasks();
 });
 
@@ -842,14 +862,25 @@ function renderTaskItem(task) {
           <p class="task-item-title">${safeTaskTitle}</p>
           <button
             type="button"
-            class="task-view-details-button"
-            data-id="${safeTaskId}"
-            aria-label="${safeViewLabel}"
-            title="View details"
+            class="task-edit-button"
+            data-id="${task.id}"
+            data-title="${encodeTaskTitle(task.title)}"
+            data-project-id="${escapeHtml(task.project_notion_page_id || "")}"
+            data-status="${escapeHtml(task.status || "")}"
+            aria-label="Edit task"
+            title="Edit task"
           >
-            <svg class="task-view-details-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <svg
+              class="task-edit-icon"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
               <path
-                d="M12 5c5.5 0 9.27 4.11 10.5 7-1.23 2.89-5 7-10.5 7S2.73 14.89 1.5 12C2.73 9.11 6.5 5 12 5zm0 2C8.06 7 5.02 9.77 3.72 12 5.02 14.23 8.06 17 12 17s6.98-2.77 8.28-5C18.98 9.77 15.94 7 12 7zm0 2.25A2.75 2.75 0 1 1 9.25 12 2.75 2.75 0 0 1 12 9.25z"
+                d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75z"
+                fill="currentColor"
+              ></path>
+              <path
+                d="M20.71 7.04a1 1 0 0 0 0-1.41L18.37 3.29a1 1 0 0 0-1.41 0l-1.84 1.84 3.75 3.75z"
                 fill="currentColor"
               ></path>
             </svg>
@@ -865,25 +896,14 @@ function renderTaskItem(task) {
       <div class="task-item-actions">
         <button
           type="button"
-          class="task-edit-button"
-          data-id="${task.id}"
-          data-title="${encodeTaskTitle(task.title)}"
-          data-project-id="${escapeHtml(task.project_notion_page_id || "")}"
-          data-status="${escapeHtml(task.status || "")}"
-          aria-label="Edit task"
-          title="Edit task"
+          class="task-view-details-button"
+          data-id="${safeTaskId}"
+          aria-label="${safeViewLabel}"
+          title="View details"
         >
-          <svg
-            class="task-edit-icon"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
+          <svg class="task-view-details-icon" viewBox="0 0 24 24" aria-hidden="true">
             <path
-              d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75z"
-              fill="currentColor"
-            ></path>
-            <path
-              d="M20.71 7.04a1 1 0 0 0 0-1.41L18.37 3.29a1 1 0 0 0-1.41 0l-1.84 1.84 3.75 3.75z"
+              d="M12 5c5.5 0 9.27 4.11 10.5 7-1.23 2.89-5 7-10.5 7S2.73 14.89 1.5 12C2.73 9.11 6.5 5 12 5zm0 2C8.06 7 5.02 9.77 3.72 12 5.02 14.23 8.06 17 12 17s6.98-2.77 8.28-5C18.98 9.77 15.94 7 12 7zm0 2.25A2.75 2.75 0 1 1 9.25 12 2.75 2.75 0 0 1 12 9.25z"
               fill="currentColor"
             ></path>
           </svg>
@@ -1096,7 +1116,7 @@ function updateAuthUI(session) {
   projectsCard.toggleAttribute("hidden", !isLoggedIn);
   tasksCard.toggleAttribute("hidden", !isLoggedIn);
   pomodoroCard.toggleAttribute("hidden", !isLoggedIn);
-  remindersSettingsCard?.toggleAttribute("hidden", !isLoggedIn);
+  remindersSettingsCard?.setAttribute("hidden", true);
   authCard.toggleAttribute("hidden", isLoggedIn);
 
   authSignUpButton.toggleAttribute("hidden", isLoggedIn);
@@ -1106,6 +1126,7 @@ function updateAuthUI(session) {
   topbarUserEmail.textContent = userEmail;
 
   if (!isLoggedIn) {
+    closeTaskComposer();
     allTasks = [];
     allProjects = [];
     cancelTaskEditing();
@@ -1113,6 +1134,7 @@ function updateAuthUI(session) {
     activeTaskFilter = "all";
     activeTaskProjectFilter = "";
     activeProjectFilter = "all";
+    visibleTasksCount = 5;
     visibleProjectsCount = 5;
     setActiveFilterButton(activeTaskFilter);
     setActiveProjectFilterButton(activeProjectFilter);
@@ -1121,6 +1143,7 @@ function updateAuthUI(session) {
     tasksList.innerHTML = "";
     tasksList.setAttribute("hidden", true);
     tasksEmptyState.setAttribute("hidden", true);
+    tasksPagination?.setAttribute("hidden", true);
     projectsList.innerHTML = "";
     projectsList.setAttribute("hidden", true);
     projectsPagination.setAttribute("hidden", true);
@@ -1157,6 +1180,7 @@ filterButtons.forEach((button) => {
     const filterValue = button.dataset.state;
 
     activeTaskFilter = filterValue;
+    visibleTasksCount = 5;
     setActiveFilterButton(filterValue);
     applyTaskFilter(filterValue);
   });
@@ -1164,12 +1188,14 @@ filterButtons.forEach((button) => {
 
 tasksProjectFilterSelect?.addEventListener("change", () => {
   activeTaskProjectFilter = tasksProjectFilterSelect.value;
+  visibleTasksCount = 5;
   tasksProjectFilterClear.toggleAttribute("hidden", !activeTaskProjectFilter);
   applyTaskFilter(activeTaskFilter);
 });
 
 tasksProjectFilterClear?.addEventListener("click", () => {
   activeTaskProjectFilter = "";
+  visibleTasksCount = 5;
   tasksProjectFilterSelect.value = "";
   tasksProjectFilterClear.setAttribute("hidden", true);
   applyTaskFilter(activeTaskFilter);
@@ -1189,9 +1215,11 @@ projectFilterButtons.forEach((button) => {
 function applyTaskFilter(filterValue) {
   populateTasksProjectFilter();
   const tasks = getFilteredTasks(filterValue);
+  const visibleTasks = tasks.slice(0, visibleTasksCount);
 
   updateCounter(tasks, taskCount, taskCountLabel);
-  renderTasks(tasks);
+  renderTasks(visibleTasks);
+  renderTasksPagination(tasks.length);
 }
 
 function getFilteredTasks(filterValue) {
@@ -1315,9 +1343,46 @@ function setActiveFilterButton(filterValue) {
 }
 
 function syncTaskFormCardVisibility() {
-  const shouldHideTaskFormCard = !isLoggedIn || isPomodoroRunning;
+  const shouldDisableComposer = !isLoggedIn || isPomodoroRunning;
 
-  taskFormCard.toggleAttribute("hidden", shouldHideTaskFormCard);
+  taskComposerToggleButton?.toggleAttribute("disabled", shouldDisableComposer);
+
+  if (shouldDisableComposer) {
+    closeTaskComposer();
+  }
+}
+
+function openTaskComposer() {
+  isTaskComposerOpen = true;
+  taskComposerPanel?.classList.add("is-open");
+  taskComposerPanel?.setAttribute("aria-hidden", "false");
+  taskComposerToggleButton?.setAttribute("aria-expanded", "true");
+  if (taskComposerToggleLabel) {
+    taskComposerToggleLabel.textContent = "Cancel";
+  }
+  taskInput?.focus();
+}
+
+function closeTaskComposer() {
+  isTaskComposerOpen = false;
+  taskComposerPanel?.classList.remove("is-open");
+  taskComposerPanel?.setAttribute("aria-hidden", "true");
+  taskComposerToggleButton?.setAttribute("aria-expanded", "false");
+  if (taskComposerToggleLabel) {
+    taskComposerToggleLabel.textContent = "Create task";
+  }
+  bulkAddSection?.setAttribute("hidden", true);
+  bulkAddToggleButton?.setAttribute("aria-expanded", "false");
+  resetBulkAddForm();
+}
+
+function toggleTaskComposer() {
+  if (isTaskComposerOpen) {
+    closeTaskComposer();
+    return;
+  }
+
+  openTaskComposer();
 }
 
 function encodeTaskTitle(title) {
@@ -1948,7 +2013,6 @@ function focusInlineEditField(selector) {
   window.requestAnimationFrame(() => {
     const input = document.querySelector(selector);
     input?.focus();
-    input?.select?.();
   });
 }
 
@@ -2016,6 +2080,16 @@ function renderProjectsPagination(totalProjectsCount) {
   const hasMoreProjects = totalProjectsCount > visibleProjectsCount;
 
   projectsPagination.toggleAttribute("hidden", !hasMoreProjects);
+}
+
+function renderTasksPagination(totalTasksCount) {
+  if (!tasksPagination || !tasksLoadMoreButton) {
+    return;
+  }
+
+  const hasMoreTasks = totalTasksCount > visibleTasksCount;
+
+  tasksPagination.toggleAttribute("hidden", !hasMoreTasks);
 }
 
 function escapeHtml(value) {
