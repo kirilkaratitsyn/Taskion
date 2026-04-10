@@ -95,6 +95,7 @@ const taskDetailsDescriptionInput = document.querySelector(".task-details-descri
 const taskDetailsEditToggleButton = document.querySelector(".task-details-edit-toggle-button");
 const taskDetailsSaveButton = document.querySelector(".task-details-save-button");
 const taskDetailsCancelButton = document.querySelector(".task-details-cancel-button");
+const taskDeleteallDoneButton = document.querySelector(".tasks-delete-all-button");
 
 let allTasks = [];
 let activeTaskFilter = "all";
@@ -181,6 +182,10 @@ document.addEventListener("DOMContentLoaded", async function () {
   await refreshSessionUI();
 });
 
+taskDeleteallDoneButton?.addEventListener("click", async () => {
+  deleteAllDoneTasks();
+  await initTasks();
+});
 projectsSyncButton?.addEventListener("click", async () => {
   await syncProjectsFromNotion(true);
 });
@@ -818,7 +823,9 @@ async function moveProjectToNextStatus(projectId, currentStatus) {
 async function deleteTask(taskId) {
   await supabase.from("tasks").delete().eq("id", taskId);
 }
-
+async function deleteAllDoneTasks() {
+  await supabase.from("tasks").delete().eq("status", "done");
+}
 function renderTasks(tasks) {
   tasksList.innerHTML = "";
 

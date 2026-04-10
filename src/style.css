@@ -966,7 +966,25 @@ input {
     background-color var(--transition),
     color var(--transition);
 }
-
+.tasks-delete-all-button{
+    display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  column-gap: 6px;
+    row-gap: 6px;
+    height: 31px;
+    padding-inline: 12px;
+    padding-left: 12px;
+    padding-right: 12px;
+  border-radius: 10px;
+  background: #f01212;
+  color: #ffffff;
+  font-family: var(--font-sans);
+  transition:
+    border-color var(--transition),
+    background-color var(--transition),
+    color var(--transition);
+}
 .task-delete-icon {
   width: 16px;
   height: 16px;
