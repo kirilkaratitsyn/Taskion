@@ -1,3 +1,4 @@
+import { registerSW } from "virtual:pwa-register";
 import { supabase } from "./supabase.js";
 import { signUp, signIn, signOut, getCurrentSession } from "./auth.js";
 
@@ -7,6 +8,8 @@ import {
   formatTaskStatusLabel,
   updateCounter,
 } from "./task-helpers.js";
+
+registerSW({ immediate: true });
 
 const taskForm = document.querySelector(".task-form");
 const taskInput = document.querySelector(".task-input");
