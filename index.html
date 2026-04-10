@@ -16,6 +16,103 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="stylesheet" href="./src/style.css" />
     <title>Taskion</title>
+    <style>
+      /* Analytics card — template markup only (wire counts via JS later) */
+      .card-analytics {
+        --analytics-done: #16a34a;
+      }
+
+      .card-analytics .card-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+        padding-top: 4px;
+      }
+
+      .analytics-donut-wrap {
+        position: relative;
+        width: 152px;
+        height: 152px;
+        flex-shrink: 0;
+      }
+
+      .analytics-donut {
+        --created: 0;
+        --done: 0;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: conic-gradient(
+          from 0deg,
+          var(--analytics-done) 0deg
+            calc(360deg * var(--done) / max(var(--created), 1)),
+          var(--border) calc(360deg * var(--done) / max(var(--created), 1)) 360deg
+        );
+        box-shadow: var(--shadow-sm);
+      }
+
+      .analytics-donut-hole {
+        position: absolute;
+        inset: 22px;
+        border-radius: 50%;
+        background: var(--card);
+        border: 1px solid var(--border);
+        display: grid;
+        place-items: center;
+        text-align: center;
+        padding: 8px;
+      }
+
+      .analytics-donut-center-value {
+        font-size: 1.375rem;
+        font-weight: 700;
+        color: var(--analytics-done);
+        line-height: 1.1;
+      }
+
+      .analytics-donut-center-value span {
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: var(--muted-foreground);
+        margin-left: 1px;
+      }
+
+      .analytics-legend {
+        width: 100%;
+        display: grid;
+        gap: 12px;
+      }
+
+      .analytics-stat {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 12px;
+        border-radius: calc(var(--radius) - 4px);
+        background: var(--muted);
+        border: 1px solid var(--border);
+      }
+
+      .analytics-stat-label {
+        font-size: 0.8125rem;
+        color: var(--muted-foreground);
+        line-height: 1.35;
+      }
+
+      .analytics-stat-value {
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: var(--foreground);
+        font-variant-numeric: tabular-nums;
+        flex-shrink: 0;
+      }
+
+      .analytics-done-count {
+        color: var(--analytics-done);
+      }
+    </style>
   </head>
   <body class="auth-only-view">
     <div class="app-shell">
@@ -256,6 +353,52 @@
                         >0m</strong
                       >
                     </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section
+              class="card card-analytics"
+              aria-labelledby="analytics-title"
+              hidden
+            >
+              <div class="card-header">
+                <div>
+                  <h2 class="card-title" id="analytics-title">Analytics</h2>
+                </div>
+              </div>
+
+              <div class="card-content">
+                <div class="analytics-donut-wrap">
+                  <div
+                    class="analytics-donut"
+                    role="img"
+                    aria-label="0 of 0 tasks done"
+                  ></div>
+                  <div class="analytics-donut-hole">
+                    <div class="analytics-donut-center-value">
+                      0<span>/0</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="analytics-legend">
+                  <div class="analytics-stat">
+                    <span class="analytics-stat-label"
+                      >Count of created Tasks</span
+                    >
+                    <span class="analytics-stat-value analytics-created-count"
+                      >0</span
+                    >
+                  </div>
+                  <div class="analytics-stat">
+                    <span class="analytics-stat-label"
+                      >Count of Done tasks</span
+                    >
+                    <span class="analytics-stat-value analytics-done-count"
+                      >0</span
+                    >
                   </div>
                 </div>
               </div>

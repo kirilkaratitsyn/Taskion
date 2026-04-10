@@ -35,6 +35,11 @@ const taskCountLabel = document.querySelector(".task-count-label");
 const projectsCard = document.querySelector(".card-projects");
 const tasksCard = document.querySelector(".card-tasks");
 const pomodoroCard = document.querySelector(".card-pomodoro");
+const analyticsCard = document.querySelector(".card-analytics");
+const analyticsDonut = document.querySelector(".analytics-donut");
+const analyticsDonutCenterValue = document.querySelector(".analytics-donut-center-value");
+const analyticsCreatedCount = document.querySelector(".analytics-created-count");
+const analyticsDoneCount = document.querySelector(".analytics-done-count");
 const pomodoroCurrentTask = document.querySelector(".pomodoro-current-task");
 const pomodoroCurrentTaskLabel = document.querySelector(".pomodoro-current-task-label");
 const pomodoroCurrentTaskText = document.querySelector(".pomodoro-current-task-text");
@@ -1087,6 +1092,7 @@ async function initTasks() {
 
   applyTaskFilter(activeTaskFilter);
   updatePomodoroCurrentTask();
+  updateAnalytics();
 }
 
 async function initProjects() {
@@ -1123,6 +1129,7 @@ function updateAuthUI(session) {
   projectsCard.toggleAttribute("hidden", !isLoggedIn);
   tasksCard.toggleAttribute("hidden", !isLoggedIn);
   pomodoroCard.toggleAttribute("hidden", !isLoggedIn);
+  analyticsCard.toggleAttribute("hidden", !isLoggedIn);
   remindersSettingsCard?.setAttribute("hidden", true);
   authCard.toggleAttribute("hidden", isLoggedIn);
 
@@ -1162,6 +1169,7 @@ function updateAuthUI(session) {
     taskCount.textContent = "0";
     taskCountLabel.textContent = "items";
     updatePomodoroCurrentTask();
+    updateAnalytics();
   }
 }
 
@@ -2132,6 +2140,20 @@ function normalizeTaskStatus(status) {
   }
 
   return normalizedStatus;
+}
+
+function updateAnalytics() {
+  const created = allTasks.length;
+  const done = allTasks.filter(
+    (task) => normalizeTaskStatus(task.status) === "done",
+  ).length;
+
+  analyticsDonut.style.setProperty("--created", String(created));
+  analyticsDonut.style.setProperty("--done", String(done));
+  analyticsCreatedCount.textContent = String(created);
+  analyticsDoneCount.textContent = String(done);
+  analyticsDonutCenterValue.innerHTML = `${done}<span>/${created}</span>`;
+  analyticsDonut.setAttribute("aria-label", `${done} of ${created} tasks done`);
 }
 
 function getTaskIdValue(taskId) {
