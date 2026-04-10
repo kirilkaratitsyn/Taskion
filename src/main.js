@@ -11,6 +11,20 @@ import {
 
 registerSW({ immediate: true });
 
+document.querySelectorAll(".card-collapse-toggle").forEach((button) => {
+  button.addEventListener("click", () => {
+    const card = button.closest(".card");
+    card.classList.toggle("is-collapsed");
+    const collapsed = card.classList.contains("is-collapsed");
+    button.setAttribute("aria-expanded", String(!collapsed));
+    button.setAttribute(
+      "aria-label",
+      collapsed ? "Expand section" : "Collapse section",
+    );
+    button.title = collapsed ? "Expand" : "Collapse";
+  });
+});
+
 const taskForm = document.querySelector(".task-form");
 const taskInput = document.querySelector(".task-input");
 const taskDescriptionInput = document.querySelector(".task-description-input");

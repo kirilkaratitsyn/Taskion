@@ -218,8 +218,82 @@ input {
   margin-bottom: 18px;
 }
 
+.card-header-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+}
+
+.card-header-top > div:first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.card-header-end {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.card-collapse-toggle {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: calc(var(--radius) - 4px);
+  border: 1px solid var(--border);
+  background: var(--secondary);
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition:
+    background var(--transition),
+    color var(--transition),
+    border-color var(--transition);
+}
+
+.card-collapse-toggle:hover {
+  color: var(--foreground);
+  background: var(--muted);
+  border-color: var(--input);
+}
+
+.card-collapse-toggle:focus-visible {
+  outline: 2px solid var(--control-ring);
+  outline-offset: 2px;
+}
+
+.card-collapse-icon {
+  width: 18px;
+  height: 18px;
+  transition: transform 0.2s ease;
+}
+
+.card:not(.is-collapsed) .card-collapse-icon {
+  transform: rotate(180deg);
+}
+
+.card.is-collapsed .card-content {
+  display: none;
+}
+
+.card.is-collapsed .card-header {
+  margin-bottom: 0;
+}
+
 .card-header-inline {
   align-items: center;
+}
+
+.card-header-inline > div:first-child,
+.card-reminders-settings .card-header > div:first-child {
+  flex: 1;
+  min-width: 0;
 }
 
 .card-title {
@@ -1100,10 +1174,16 @@ input {
 }
 
 .card-header-actions {
-  display: inline-flex;
+  display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 12px;
   flex-wrap: wrap;
+  min-width: 0;
+}
+
+.card-header-actions > .card-collapse-toggle {
+  flex-shrink: 0;
 }
 
 .project-item {
